@@ -1,0 +1,87 @@
+.unityContainer {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #000;
+  overflow: hidden;
+}
+
+.unityCanvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.loadingOverlay,
+.errorOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.9);
+  z-index: 10;
+}
+
+.loadingContent,
+.errorContent {
+  text-align: center;
+  color: #fff;
+  max-width: 500px;
+  padding: 2rem;
+}
+
+.loadingContent h2,
+.errorContent h2 {
+  margin-bottom: 1.5rem;
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+.progressBar {
+  width: 100%;
+  height: 8px;
+  background: #333;
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 1rem 0;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #00ff88, #00ccff);
+  transition: width 0.3s ease;
+  border-radius: 4px;
+}
+
+.loadingContent p {
+  font-size: 1.2rem;
+  margin-top: 0.5rem;
+}
+
+.errorContent p {
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  color: #ff6b6b;
+}
+
+.errorHint {
+  font-size: 0.9rem;
+  color: #aaa !important;
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+.errorHint code {
+  color: #00ff88;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 0.2rem 0.5rem;
+  border-radius: 3px;
+  font-family: monospace;
+}
