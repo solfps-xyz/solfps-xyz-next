@@ -1,14 +1,14 @@
-import UnityGame from "@/components/UnityGame";
+import RaylibGame from "@/components/RaylibGame";
 import styles from "./page.module.css";
 
 export default function Home() {
   return (
     <div className={styles.page}>
       <main className={styles.main}>
-        <UnityGame 
-          buildPath="/unity/Build"
-          width="100%"
-          height="100vh"
+        <RaylibGame 
+          gamePath="/game"
+          width={800}
+          height={450}
         />
       </main>
     </div>

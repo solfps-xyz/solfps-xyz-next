@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Sol FPS - Cyberpunk",
-  description: "First-person shooter game on Solana",
+  description: "First-person shooter game on Solana built with Raylib",
 };
 
 export default function RootLayout({
