@@ -1,6 +1,9 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
+import { usePrivy } from '@privy-io/react-auth';
+import { wasmBridge } from '@/lib/wasmBridge';
+import { useSolanaKit } from '@/hooks/useSolanaKit';
 import styles from './RaylibGame.module.css';
 
 interface RaylibGameProps {
@@ -21,12 +24,83 @@ export default function RaylibGame({
   height = 450
 }: RaylibGameProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const scriptRef = useRef<HTMLScriptElement | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [gameKey, setGameKey] = useState(0); // Force remount
+
+  const { user, login, logout, authenticated } = usePrivy();
+  const { walletAddressString, rpc, isConnected } = useSolanaKit();
+
+  // Update WASM bridge with current user and wallet state
+  useEffect(() => {
+    wasmBridge.updateUser(user);
+  }, [user]);
+
+  // Custom logout handler that reloads the game
+  const handleLogout = useCallback(async () => {
+    console.log('� WASM requested wallet disconnection');
+    await logout();
+    // Force game reload after logout
+    setTimeout(() => {
+      setGameKey(prev => prev + 1);
+      setLoading(true);
+      setError(null);
+    }, 500);
+  }, [logout]);
+
+  // Set up wallet connection handlers for WASM
+  useEffect(() => {
+    wasmBridge.setConnectWalletHandler(async () => {
+      console.log('� WASM requested wallet connection');
+      await login();
+    });
+
+    wasmBridge.setDisconnectWalletHandler(handleLogout);
+
+    // Set up Solana balance handler
+    wasmBridge.setGetBalanceHandler(async () => {
+      if (!walletAddressString || !rpc) return null;
+      try {
+        const { value } = await rpc.getBalance(walletAddressString as any).send();
+        return Number(value);
+      } catch (error) {
+        console.error('Error fetching balance:', error);
+        return null;
+      }
+    });
+
+    // TODO: Implement signing and transaction handlers when needed
+    wasmBridge.setSignMessageHandler(async (message: string) => {
+      console.log('✍️ WASM requested message signing:', message);
+      // Implement Solana message signing here
+      throw new Error('Message signing not implemented yet');
+    });
+
+    wasmBridge.setSendTransactionHandler(async (recipient: string, amount: number) => {
+      console.log('💸 WASM requested transaction:', { recipient, amount });
+      // Implement Solana transaction sending here
+      throw new Error('Transaction sending not implemented yet');
+    });
+  }, [login, handleLogout, walletAddressString, rpc]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+
+    // Clean up previous instance
+    if (scriptRef.current && document.body.contains(scriptRef.current)) {
+      document.body.removeChild(scriptRef.current);
+      scriptRef.current = null;
+    }
+
+    if (window.Module) {
+      delete window.Module;
+    }
+
+    // Reset state
+    setLoading(true);
+    setError(null);
 
     // Raylib/Emscripten Module configuration
     window.Module = {
@@ -54,15 +128,21 @@ export default function RaylibGame({
           setLoading(false);
         }
       },
+      onRuntimeInitialized: function() {
+        console.log('🎮 Game runtime initialized');
+        setLoading(false);
+      },
     };
 
     // Load the Emscripten-compiled WebAssembly game
     const script = document.createElement('script');
-    script.src = `${gamePath}/game.js`; // Typical Raylib output name
+    script.src = `${gamePath}/game.js?v=${gameKey}`; // Cache busting
     script.async = true;
+    scriptRef.current = script;
 
     script.onload = () => {
-      console.log('Raylib game script loaded');
+      console.log('✅ Raylib game script loaded');
+      console.log('✅ PrivyBridge is available to WASM');
     };
 
     script.onerror = () => {
@@ -73,18 +153,19 @@ export default function RaylibGame({
     document.body.appendChild(script);
 
     return () => {
-      // Cleanup
-      if (document.body.contains(script)) {
-        document.body.removeChild(script);
+      // Cleanup on unmount
+      if (scriptRef.current && document.body.contains(scriptRef.current)) {
+        document.body.removeChild(scriptRef.current);
+        scriptRef.current = null;
       }
       if (window.Module) {
         delete window.Module;
       }
     };
-  }, [gamePath]);
+  }, [gamePath, gameKey]); // Re-run when gameKey changes
 
   return (
-    <div className={styles.gameContainer}>
+    <div className={styles.gameContainer} key={gameKey}>
       {loading && (
         <div className={styles.loadingOverlay}>
           <div className={styles.loadingContent}>

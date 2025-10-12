@@ -1,6 +1,7 @@
 import RaylibGame from "@/components/RaylibGame";
 import AuthGuard from "@/components/AuthGuard";
 import UserProfile from "@/components/UserProfile";
+import BridgeTest from "@/components/BridgeTest";
 import styles from "./page.module.css";
 
 export default function Home() {
@@ -8,6 +9,7 @@ export default function Home() {
     <AuthGuard>
       <div className={styles.page}>
         <UserProfile />
+        <BridgeTest />
         <main className={styles.main}>
           <RaylibGame 
             gamePath="/game"
