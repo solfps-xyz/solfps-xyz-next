@@ -1,4 +1,5 @@
 import type { User } from '@privy-io/react-auth';
+import { isMobileDevice, isTabletDevice, getDeviceInfo } from './deviceDetection';
 
 /**
  * Global bridge object that exposes wallet functions to WASM
@@ -23,6 +24,15 @@ declare global {
       getSolanaBalance: () => Promise<number | null>;
       signSolanaMessage: (message: string) => Promise<string>;
       sendSolanaTransaction: (recipientAddress: string, amountLamports: number) => Promise<string>;
+      
+      // Device detection
+      isMobile: () => boolean;
+      isTablet: () => boolean;
+      isDesktop: () => boolean;
+      getScreenWidth: () => number;
+      getScreenHeight: () => number;
+      getOrientation: () => 'portrait' | 'landscape';
+      hasTouch: () => boolean;
     };
   }
 }
@@ -96,6 +106,38 @@ export class WasmBridge {
           throw new Error('Send transaction handler not initialized');
         }
         return await this.sendTransactionHandler(recipientAddress, amountLamports);
+      },
+
+      // Device detection functions
+      isMobile: () => {
+        return isMobileDevice();
+      },
+
+      isTablet: () => {
+        return isTabletDevice();
+      },
+
+      isDesktop: () => {
+        const deviceInfo = getDeviceInfo();
+        return deviceInfo.isDesktop;
+      },
+
+      getScreenWidth: () => {
+        return typeof window !== 'undefined' ? window.innerWidth : 0;
+      },
+
+      getScreenHeight: () => {
+        return typeof window !== 'undefined' ? window.innerHeight : 0;
+      },
+
+      getOrientation: () => {
+        if (typeof window === 'undefined') return 'landscape';
+        return window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
+      },
+
+      hasTouch: () => {
+        return typeof window !== 'undefined' && 
+               ('ontouchstart' in window || navigator.maxTouchPoints > 0);
       },
     };
 

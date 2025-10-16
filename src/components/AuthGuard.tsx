@@ -1,6 +1,7 @@
 'use client';
 
 import { usePrivy } from '@privy-io/react-auth';
+import { isMobileDevice } from '@/lib/deviceDetection';
 import styles from './AuthGuard.module.css';
 
 interface AuthGuardProps {
@@ -9,6 +10,13 @@ interface AuthGuardProps {
 
 export default function AuthGuard({ children }: AuthGuardProps) {
   const { ready, authenticated, login } = usePrivy();
+  
+  // Skip authentication on mobile for testing
+  const isMobile = isMobileDevice();
+  if (isMobile) {
+    console.log('🔓 Mobile detected - skipping authentication for testing');
+    return <>{children}</>;
+  }
 
   // Show loading state while Privy is initializing
   if (!ready) {
