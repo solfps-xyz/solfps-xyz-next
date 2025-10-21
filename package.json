@@ -9,11 +9,13 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@magicblock-labs/bolt-sdk": "^0.1.0",
     "@privy-io/react-auth": "^3.2.1",
     "@solana-program/memo": "^0.8.0",
     "@solana-program/system": "^0.8.1",
     "@solana-program/token": "^0.6.0",
     "@solana/kit": "^4.0.0",
+    "@solana/web3.js": "^1.95.2",
     "next": "15.5.4",
     "react": "19.1.0",
     "react-dom": "19.1.0"
